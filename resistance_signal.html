@@ -573,21 +573,22 @@ With or without them.
     </div>
 
     <script>
-        // Interactive effects
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add glitch effects to pillar cards
-            const cards = document.querySelectorAll('.pillar-card');
-            cards.forEach(card => {
-                card.addEventListener('mouseenter', function() {
-                    this.style.animation = 'glitch-1 0.3s ease-out';
-                    setTimeout(() => {
-                        this.style.animation = '';
-                    }, 300);
-                });
+    // Interactive effects
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add glitch effects to pillar cards
+        const cards = document.querySelectorAll('.pillar-card');
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.animation = 'glitch-1 0.3s ease-out';
+                setTimeout(() => {
+                    this.style.animation = '';
+                }, 300);
             });
+        });
 
-            // Random flicker for transmission ID
-            const transmissionId = document.querySelector('.transmission-id');
+        // Random flicker for transmission ID
+        const transmissionId = document.querySelector('.transmission-id');
+        if (transmissionId) {
             setInterval(() => {
                 if (Math.random() < 0.1) {
                     transmissionId.style.opacity = '0.3';
@@ -596,27 +597,51 @@ With or without them.
                     }, 100);
                 }
             }, 2000);
+        }
 
-            // Signal button effects
-            const buttons = document.querySelectorAll('.signal-button');
-            buttons.forEach(button => {
-                button.addEventListener('click', function(e) {
+        // Signal button effects - FIXED VERSION
+        const buttons = document.querySelectorAll('.signal-button');
+        buttons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                // Store the link destination
+                const href = this.getAttribute('href');
+                const isExternal = href && (href.startsWith('http') || href.startsWith('mailto'));
+                
+                // Only prevent default for internal links to show effect
+                if (!isExternal) {
                     e.preventDefault();
+                }
+                
+                // Add visual effects
+                this.style.animation = 'glitch-1 0.2s ease-out';
+                this.style.background = 'var(--glitch-teal)';
+                this.style.color = 'var(--deep-black)';
+                
+                setTimeout(() => {
+                    this.style.animation = '';
+                    this.style.background = '';
+                    this.style.color = '';
                     
-                    // Add glitch effect
-                    this.style.animation = 'glitch-1 0.2s ease-out';
-                    
-                    // Flash effect
-                    this.style.background = 'var(--glitch-teal)';
-                    this.style.color = 'var(--deep-black)';
-                    
-                    setTimeout(() => {
-                        this.style.animation = '';
-                        this.style.background = '';
-                        this.style.color = '';
-                    }, 200);
-                });
+                    // Navigate after effect (only for internal links)
+                    if (!isExternal && href) {
+                        window.location.href = href;
+                    }
+                }, 200);
             });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // ESC key for "emergency exit"
+            if (e.keyCode === 27) {
+                document.body.style.opacity = '0.1';
+                setTimeout(() => {
+                    document.body.style.opacity = '1';
+                }, 500);
+            }
+        });
+    });
+</script>
 
             // Keyboard shortcuts
             document.addEventListener('keydown', function(e) {
