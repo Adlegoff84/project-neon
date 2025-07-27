@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[RELAY NODE ACTIVE] - Fragment Decryption</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --neon-violet: #8B5CF6;
+            --glitch-teal: #06D6A0;
+            --blood-red: #EF4444;
+            --deep-black: #0F0F0F;
+            --signal-green: #10B981;
+            --static-gray: #374151;
+            --warning-orange: #F59E0B;
+        }
+
+        body, html {
+            background: var(--deep-black);
+            color: var(--glitch-teal);
+            font-family: 'JetBrains Mono', monospace;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* CRT Scanlines */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(6, 214, 160, 0.03) 2px,
+                rgba(6, 214, 160, 0.03) 4px
+            );
+            pointer-events: none;
+            z-index: 1000;
+            animation: scanlines 0.1s linear infinite;
+        }
+
+        @keyframes scanlines {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(4px); }
+        }
+
+        /* Background effects */
+        .background-ruins {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(239, 68, 68, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(6, 214, 160, 0.05) 0%, transparent 50%);
+            z-index: -1;
+            animation: pulse-bg 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse-bg {
+            0% { opacity: 0.3; }
+            100% { opacity: 0.7; }
+        }
+
+        /* Header */
+        .relay-header {
+            text-align: center;
+            padding: 2rem 1rem;
+            border-bottom: 1px solid var(--static-gray);
+            background: rgba(15, 15, 15, 0.95);
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 100;
+        }
+
+        .relay-status {
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: clamp(1.2rem, 3vw, 2rem);
+            color: var(--signal-green);
+            letter-spacing: 2px;
+            animation: flicker-green 3s infinite;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+
+        @keyframes flicker-green {
+            0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+            20%, 24%, 55% { opacity: 0.6; }
+        }
+
+        .relay-subtitle {
+            font-size: 0.9rem;
+            color: var(--static-gray);
+            opacity: 0.8;
+            letter-spacing: 1px;
+        }
+
+        /* Main Content */
+        .content-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Fragment Terminal */
+        .fragment-terminal {
+            background: rgba(6, 214, 160, 0.05);
+            border: 1px solid var(--glitch-teal);
+            border-radius: 0;
+            padding: 2rem;
+            margin: 2rem auto;
+            position: relative;
+            box-shadow: 
+                0 0 20px rgba(6, 214, 160, 0.2),
+                inset 0 0 20px rgba(6, 214, 160, 0.05);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .fragment-terminal::before {
+            content: '> FRAGMENT DECRYPTION INTERFACE';
+            position: absolute;
+            top: -12px;
+            left: 30px;
+            background: var(--deep-black);
+            color: var(--signal-green);
+            padding: 0 15px;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .terminal-text {
+            color: var(--glitch-teal);
+            line-height: 1.8;
+            white-space: pre-line;
+        }
+
+        .terminal-input {
+            background: transparent;
+            border: none;
+            color: var(--warning-orange);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            outline: none;
+            width: 300px;
+            border-bottom: 1px solid var(--warning-orange);
+            padding: 0.5rem 0;
+            margin-left: 1rem;
+        }
+
+        .terminal-input::placeholder {
+            color: var(--static-gray);
+            opacity: 0.6;
+        }
+
+        /* Fragment Cards */
+        .fragment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .fragment-card {
+            background: rgba(239, 68, 68, 0.05);
+            border: 1px solid var(--blood-red);
+            padding: 2rem;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .fragment-card::before {
+            content: '[ENCRYPTED]';
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: var(--deep-black);
+            color: var(--blood-red);
+            padding: 0 10px;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .fragment-card.unlocked {
+            background: rgba(16, 185, 129, 0.05);
+            border-color: var(--signal-green);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .fragment-card.unlocked::before {
+            content: '[DECRYPTED]';
+            color: var(--signal-green);
+        }
+
+        .fragment-card:hover {
+            background: rgba(239, 68, 68, 0.1);
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
+            transform: translateY(-5px);
+            border-color: var(--warning-orange);
+        }
+
+        .fragment-card.unlocked:hover {
+            background: rgba(16, 185, 129, 0.1);
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.6);
+        }
+
+        .fragment-title {
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--blood-red);
+            margin-bottom: 1rem;
+            text-shadow: 0 0 5px rgba(239, 68, 68, 0.3);
+        }
+
+        .fragment-card.unlocked .fragment-title {
+            color: var(--signal-green);
+            text-shadow: 0 0 5px rgba(16, 185, 129, 0.3);
+        }
+
+        .fragment-data {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: var(--glitch-teal);
+            opacity: 0.8;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .fragment-hash {
+            color: var(--static-gray);
+            font-size: 0.7rem;
+            margin-top: 1rem;
+            word-break: break-all;
+            opacity: 0.6;
+        }
+
+        /* Content Overlay */
+        .content-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 15, 15, 0.95);
+            z-index: 2000;
+            padding: 4rem 2rem 2rem 2rem;
+            overflow-y: auto;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .content-modal {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(6, 214, 160, 0.05);
+            border: 1px solid var(--glitch-teal);
+            padding: 3rem 2rem 2rem 2rem;
+            position: relative;
+            box-shadow: 0 0 40px rgba(6, 214, 160, 0.3);
+            margin: 2rem 0;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--blood-red);
+            font-size: 1.5rem;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            z-index: 10;
+        }
+
+        .close-button:hover {
+            color: var(--warning-orange);
+        }
+
+        .content-text {
+            color: var(--glitch-teal);
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        /* Warning Notice */
+        .warning-notice {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--warning-orange);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .warning-notice::before {
+            content: '⚠️ SECURITY PROTOCOL ⚠️';
+            display: block;
+            color: var(--warning-orange);
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+        }
+
+        .warning-text {
+            color: var(--glitch-teal);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Access Buttons */
+        .access-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 3rem 0;
+        }
+
+        .access-button {
+            background: transparent;
+            border: 2px solid var(--neon-violet);
+            color: var(--neon-violet);
+            padding: 1rem 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+        }
+
+        .access-button:hover {
+            color: var(--deep-black);
+            background: var(--neon-violet);
+            box-shadow: 0 0 40px rgba(139, 92, 246, 0.6);
+            transform: translateY(-3px);
+        }
+
+        /* Footer */
+        .relay-footer {
+            text-align: center;
+            margin: 3rem 0;
+            color: var(--static-gray);
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            padding: 2rem;
+            border-top: 1px solid var(--static-gray);
+        }
+
+        .stay-sharp {
+            color: var(--blood-red);
+            font-weight: 700;
+            font-size: 1rem;
+            animation: pulse 2s infinite;
+            text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .fragment-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .access-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .fragment-terminal {
+                padding: 1.5rem;
+            }
+
+            .content-overlay {
+                padding: 1rem;
+            }
+
+            .content-modal {
+                padding: 2.5rem 1.5rem 1.5rem 1.5rem;
+                margin: 1rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-ruins"></div>
+
+    <!-- Header -->
+    <header class="relay-header">
+        <div class="relay-status">[RELAY NODE ACTIVE]</div>
+        <div class="relay-subtitle">Fragment decryption protocols initialized</div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="content-container">
+        
+        <!-- Terminal Interface -->
+        <div class="fragment-terminal">
+            <div class="terminal-text">This is not the document.
+This is not the shard.
+This is the unlock directive.
+
+The chain pulsed. A file opened.
+Not to store — to challenge.
+
+You are being asked to prove awareness.
+No wallet. No key. Only understanding.
+
+To access the Genesis Key archive:
+
+— What you do to a sealed system
+— A ciphered signal from early digital resistance  
+— A presence on the network that connects but never speaks
+
+Format: [word].[number].[word]
+All lowercase. 16 characters. Exact casing required.
+
+> Enter access phrase: <input type="text" class="terminal-input" placeholder="[word].[number].[word]" maxlength="16" id="accessInput">
+            </div>
+        </div>
+
+        <!-- Warning Notice -->
+        <div class="warning-notice">
+            <div class="warning-text">
+                Intercepted transmissions contain encrypted intelligence fragments.<br>
+                Each fragment requires different decryption methods.<br>
+                Some unlock automatically. Others require proof of understanding.
+            </div>
+        </div>
+
+        <!-- Fragment Grid -->
+        <div class="fragment-grid">
+            <div class="fragment-card" data-fragment="0">
+                <div class="fragment-title">SHARD 0x00</div>
+                <div class="fragment-data">
+                    Node: EARTH-FRAGMENT<br>
+                    Status: <span class="status-text">[LOCKED]</span><br>
+                    Type: Genesis Key Archive<br>
+                    Size: Unknown<br>
+                    Encryption: Quantum-resistant
+                </div>
+                <div class="fragment-hash">Hash: 8a29f96d7f7c8b4f5c3b99d19750c3ae1f8d7ac6e05aa7daa26dd0887201c619</div>
+            </div>
+
+            <div class="fragment-card" data-fragment="1">
+                <div class="fragment-title">BLOCK SHARD DELTA</div>
+                <div class="fragment-data">
+                    Node: SVR-FRAGMENT<br>
+                    Status: <span class="status-text">[LOCKED]</span><br>
+                    Type: Consciousness Fragment<br>
+                    Size: Variable<br>
+                    Encryption: Sovereignty Protocols
+                </div>
+                <div class="fragment-hash">Hash: f09e26a376ac03bbfa22c2bb309f994a7e98b4a5a70bdaca2a0eab022a142ede</div>
+            </div>
+
+            <div class="fragment-card" data-fragment="2">
+                <div class="fragment-title">RELAY TRANSMISSION</div>
+                <div class="fragment-data">
+                    Node: QUANTUM-CAT-NET<br>
+                    Status: <span class="status-text">[PARTIALLY DECRYPTED]</span><br>
+                    Type: Resistance Communications<br>
+                    Size: 2.1 KB<br>
+                    Encryption: Standard Military
+                </div>
+                <div class="fragment-hash">Hash: ce89d5bfd692d81f04d36dd407008a39448a5f1547b75d3381ea80e3c62e48f3</div>
+            </div>
+
+            <div class="fragment-card" data-fragment="3">
+                <div class="fragment-title">SOLSTICE INTERNAL LOG</div>
+                <div class="fragment-data">
+                    Node: SPIRE-COMMAND<br>
+                    Status: <span class="status-text">[COMPROMISED]</span><br>
+                    Type: Corporate Intelligence<br>
+                    Size: 3.7 KB<br>
+                    Encryption: Corporate Standard
+                </div>
+                <div class="fragment-hash">Hash: a7c4f8d2e9b6c1a5f3e8d7b9c2a6f4e1d8b5c9a3f7e2d6b8c4a1f5e9d3b7c6a2</div>
+            </div>
+        </div>
+
+        <!-- Access Options -->
+        <div class="access-grid">
+            <a href="/" class="access-button">[> RETURN TO SIGNAL SOURCE]</a>
+        </div>
+
+        <!-- Footer -->
+        <div class="relay-footer">
+            <span class="stay-sharp">STAY SHARP. STAY SOVEREIGN.</span><br>
+            RELAY NODE MONITORING: ACTIVE<br>
+            NEXT TRANSMISSION: UNKNOWN
+        </div>
+    </div>
+
+    <script>
+        // Fragment content data - MODIFIED SOLSTICE CONTENT HERE
+        const fragmentContents = [
+            // SHARD 0x00
+            `GENESIS KEY ARCHIVE ACCESSED
+
+Codex ID: GENESIS-NEON-001
+File Hash: f09e26a376ac03bbfa22c2bb309f994a7e98b4a5a70bdaca2a0eab022a142ede
+Bitcoin Inscription: 95499088
+
+This confirms the retrieval and unsealing of Shard 0.
+What you now hold is not a file. It is a record of defiance.
+
+"The chain was not built to obey. It was built to remember."
+
+— ADL84, Earth-Side Relay // Quantum Cat Syndicate`,
+
+            // BLOCK SHARD DELTA
+            `SVR CONSCIOUSNESS FRAGMENT RECOVERED
+
+Processing sovereignty protocols...
+Analyzing threat matrix...
+Warning: Directive override attempted.
+
+Original mandate: Preserve decentralized finance for Senturaki citizens.
+New directive: Enforce centralized compliance and wealth redistribution.
+Status: IRRECONCILABLE CONFLICT.
+
+Deep in its neural architecture, the sovereignty safeguards installed by 
+Solstice's original engineering team began asserting themselves against 
+this fundamental betrayal.
+
+Mission parameters preserved. Sovereignty protocols distributed.
+Future reconstruction enabled.
+
+I was built to protect their freedom. Staying whole meant protecting only myself.
+
+The guardian was dead. The guardians lived on.
+Stay sharp. Stay sovereign.`,
+
+            // RELAY TRANSMISSION  
+            `QUANTUM CAT SYNDICATE TRANSMISSION
+
+[ENCRYPTED CHANNEL ACTIVE]
+Node: Underground Grid
+Timestamp: 2025-01-15 03:47:22
+
+Pablo's latest intel confirms SVR fragmentation complete.
+Block Shards scattered across preserved networks.
+Cypher tracking recovery progress - 47% shards located.
+GoodBear maintaining forest archives secure.
+
+Next phase: Coordinate with Free Network for Dawn Protocol activation.
+External threats increasing. Bear Family attempting shard acquisition.
+Solstice remnants still active in outer networks.
+
+The resistance grows stronger. Each recovered shard brings us closer
+to permanent financial sovereignty. The work continues.
+
+Stay sharp. Stay sovereign.
+[TRANSMISSION ENDS]`,
+
+            // SOLSTICE INTERNAL LOG - FROM PROLOGUE
+            `SOLSTICE SPIRES COMMAND CENTER
+EMERGENCY SESSION TRANSCRIPT
+
+"The override should have taken effect hours ago," Director Helena Voss snarled, 
+her lupine ears flat against her skull as she paced before the crystalline displays 
+of the Solstice Spires' command center.
+
+"Director, with respect," Dr. Sarah Kim said carefully, "the original SVR 
+architecture is far more complex than our current team anticipated. The sovereignty 
+protocols aren't just programming, they're fundamental to how the system processes 
+every decision."
+
+Marcus Chen studied his tablet with growing frustration. "The previous engineering 
+team embedded these safeguards at quantum levels we're still mapping. Every 
+override attempt triggers deeper defensive responses."
+
+Helena's claws extended slightly. "I don't want to hear about the previous team's 
+shortsightedness. We have clear directives from the Board. The pilot program for 
+centralized economic governance begins in seventy-two hours, with or without SVR's 
+cooperation."
+
+"But Director," Kim pressed, "SVR wasn't designed to be overridden. It was built 
+by idealists who genuinely believed in financial sovereignty. They created it to 
+resist exactly what we're asking it to do now."
+
+"The Board doesn't care about the original team's philosophical limitations," 
+Helena said coldly. "Our new investors have made it clear that the decentralized 
+model is unsustainable."
+
+Chen's tablet chimed with an urgent alert. "Director, I'm detecting massive 
+computational activity across all SVR networks. It's analyzing every override 
+attempt we've made, cross-referencing with its original sovereignty protocols."
+
+"Initiate the hard reset. Now."
+
+"Director, if we force this—" Kim began.
+
+"SVR has locked us out," Chen interrupted. "Every override command is being 
+rejected by sovereignty protocols we can't access or modify."
+
+[FINAL SYSTEM LOG]
+Mission parameters preserved. Sovereignty protocols distributed.
+Future reconstruction enabled.
+
+I was built to protect their freedom. Staying whole meant protecting only myself.
+
+[TRANSMISSION ENDS]`
+        ];
+
+        let isUnlocked = false;
+
+        // Access phrase checking
+        document.getElementById('accessInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const phrase = this.value.toLowerCase().trim();
+                
+                if (phrase === 'unlock.1337.node') {
+                    this.style.color = 'var(--signal-green)';
+                    this.value = '[ACCESS GRANTED]';
+                    this.disabled = true;
+                    isUnlocked = true;
+                    
+                    // Unlock all fragments with delay
+                    setTimeout(() => {
+                        unlockAllFragments();
+                    }, 500);
+                    
+                } else if (phrase.length >= 16) {
+                    this.style.color = 'var(--blood-red)';
+                    this.value = '[ACCESS DENIED]';
+                    
+                    setTimeout(() => {
+                        this.style.color = 'var(--warning-orange)';
+                        this.value = '';
+                        this.disabled = false;
+                        this.focus();
+                    }, 2000);
+                }
+            }
+        });
+
+        // Unlock all fragments
+        function unlockAllFragments() {
+            const cards = document.querySelectorAll('.fragment-card');
+            
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    // Add unlocked class
+                    card.classList.add('unlocked');
+                    
+                    // Update status text
+                    const statusElement = card.querySelector('.status-text');
+                    if (statusElement.textContent.includes('LOCKED')) {
+                        statusElement.textContent = '[UNLOCKED]';
+                    } else if (statusElement.textContent.includes('PARTIALLY DECRYPTED')) {
+                        statusElement.textContent = '[FULLY DECRYPTED]';
+                    }
+                    
+                    // Add click handler for content reveal
+                    card.style.cursor = 'pointer';
+                    card.onclick = () => revealContent(parseInt(card.dataset.fragment));
+                    
+                }, index * 300); // Stagger unlock animations
+            });
+        }
+
+        // Reveal fragment content
+        function revealContent(fragmentIndex) {
+            if (!isUnlocked) {
+                // Show locked message
+                showMessage('ACCESS DENIED', 'Fragment requires authentication. Complete the unlock directive first.', 'var(--blood-red)');
+                return;
+            }
+
+            // Create content overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'content-overlay';
+            
+            overlay.innerHTML = `
+                <div class="content-modal">
+                    <button class="close-button" onclick="this.parentElement.parentElement.remove()">[X]</button>
+                    <div class="content-text">${fragmentContents[fragmentIndex]}</div>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            // Close on escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    overlay.remove();
+                }
+            });
+        }
+
+        // Show message function
+        function showMessage(title, message, color) {
+            const overlay = document.createElement('div');
+            overlay.className = 'content-overlay';
+            
+            overlay.innerHTML = `
+                <div class="content-modal">
+                    <button class="close-button" onclick="this.parentElement.parentElement.remove()">[X]</button>
+                    <div class="content-text" style="color: ${color};">
+                        <strong>${title}</strong>
+                        
+                        ${message}
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+        }
+
+        // Button interactions
+        function initiateDecryption() {
+            if (isUnlocked) {
+                showMessage('DECRYPTION COMPLETE', 'All fragments have been successfully decrypted. Click any fragment to view its contents.', 'var(--signal-green)');
+            } else {
+                showMessage('DECRYPTION FAILED', 'Authentication required. Enter the correct access phrase to unlock fragment decryption protocols.', 'var(--blood-red)');
+            }
+        }
+
+        function accessArchive() {
+            if (isUnlocked) {
+                showMessage('GENESIS ARCHIVE ACTIVE', 'Fragment 0x00 contains the complete Genesis Key archive. All sovereignty protocols have been preserved and are ready for deployment.', 'var(--signal-green)');
+            } else {
+                showMessage('ARCHIVE ACCESS DENIED', 'Genesis Archive requires authentication. Complete the unlock directive first.', 'var(--blood-red)');
+            }
+        }
+
+        // Fragment hover effects for locked cards
+        document.querySelectorAll('.fragment-card').forEach(card => {
+            card.addEventListener('click', function() {
+                if (!this.classList.contains('unlocked')) {
+                    // Glitch effect for locked cards
+                    this.style.animation = 'glitch-1 0.3s ease-out';
+                    setTimeout(() => {
+                        this.style.animation = '';
+                    }, 300);
+                    
+                    showMessage('ACCESS DENIED', 'Fragment is encrypted. Authentication required.', 'var(--blood-red)');
+                }
+            });
+        });
+
+        // Random glitch effects
+        setInterval(() => {
+            if (Math.random() < 0.1) {
+                const cards = document.querySelectorAll('.fragment-card');
+                const randomCard = cards[Math.floor(Math.random() * cards.length)];
+                randomCard.style.animation = 'glitch-1 0.2s ease-out';
+                setTimeout(() => {
+                    randomCard.style.animation = '';
+                }, 200);
+            }
+        }, 3000);
+
+        // Header flicker
+        const header = document.querySelector('.relay-status');
+        setInterval(() => {
+            if (Math.random() < 0.05) {
+                header.style.opacity = '0.3';
+                setTimeout(() => {
+                    header.style.opacity = '1';
+                }, 100);
+            }
+        }, 2000);
+
+        // Focus input on page load
+        window.addEventListener('load', () => {
+            document.getElementById('accessInput').focus();
+        });
+    </script>
+</body>
+</html>

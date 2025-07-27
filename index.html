@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Neon - Terminal Access</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --neon-violet: #8B5CF6;
+            --glitch-teal: #06D6A0;
+            --blood-red: #EF4444;
+            --deep-black: #0F0F0F;
+            --signal-green: #10B981;
+            --static-gray: #374151;
+            --warning-orange: #F59E0B;
+        }
+
+        body, html {
+            background: var(--deep-black);
+            color: var(--glitch-teal);
+            font-family: 'JetBrains Mono', monospace;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* CRT Scanlines */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(6, 214, 160, 0.03) 2px,
+                rgba(6, 214, 160, 0.03) 4px
+            );
+            pointer-events: none;
+            z-index: 1000;
+            animation: scanlines 0.1s linear infinite;
+        }
+
+        @keyframes scanlines {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(4px); }
+        }
+
+        /* Background effects */
+        .background-ruins {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(239, 68, 68, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(6, 214, 160, 0.05) 0%, transparent 50%);
+            z-index: -1;
+            animation: pulse-bg 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse-bg {
+            0% { opacity: 0.3; }
+            100% { opacity: 0.7; }
+        }
+
+        /* Main Container */
+        .landing-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            max-width: 90vw;
+            max-height: 90vh;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ASCII Logo */
+        .ascii-logo {
+            margin-bottom: 3rem;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .terminal-ring {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: clamp(0.3rem, 0.6vw, 0.5rem);
+            line-height: 1.2;
+            color: var(--glitch-teal);
+            text-shadow: 0 0 10px rgba(6, 214, 160, 0.5);
+            animation: logo-pulse 4s ease-in-out infinite alternate;
+            margin: 0;
+            white-space: pre;
+            transform-origin: center;
+            letter-spacing: 0px;
+            font-weight: 400;
+            /* Force proper character proportions */
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum";
+            /* Prevent browser font scaling */
+            text-size-adjust: none;
+            -webkit-text-size-adjust: none;
+            -moz-text-size-adjust: none;
+            /* Preserve aspect ratio */
+            width: fit-content;
+            height: fit-content;
+        }
+
+        @keyframes logo-pulse {
+            0% { 
+                opacity: 0.6;
+                text-shadow: 0 0 5px rgba(6, 214, 160, 0.3);
+            }
+            100% { 
+                opacity: 1;
+                text-shadow: 0 0 20px rgba(6, 214, 160, 0.8);
+            }
+        }
+
+        /* Project Title */
+        .project-title {
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: clamp(1.5rem, 4vw, 3rem);
+            color: var(--neon-violet);
+            letter-spacing: 3px;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+            animation: title-flicker 3s infinite;
+        }
+
+        @keyframes title-flicker {
+            0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; }
+            20%, 24%, 55% { opacity: 0.4; }
+        }
+
+        .project-subtitle {
+            font-size: clamp(0.9rem, 2vw, 1.2rem);
+            color: var(--static-gray);
+            margin-bottom: 3rem;
+            letter-spacing: 2px;
+            opacity: 0.8;
+        }
+
+        /* Enter Button */
+        .enter-button {
+            background: transparent;
+            border: 3px solid var(--glitch-teal);
+            color: var(--glitch-teal);
+            padding: 1.5rem 3rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: clamp(1rem, 2.5vw, 1.3rem);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            min-width: 200px;
+            box-shadow: 0 0 20px rgba(6, 214, 160, 0.3);
+        }
+
+        .enter-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(6, 214, 160, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .enter-button:hover {
+            color: var(--deep-black);
+            background: var(--glitch-teal);
+            box-shadow: 
+                0 0 40px rgba(6, 214, 160, 0.8),
+                inset 0 0 40px rgba(6, 214, 160, 0.2);
+            transform: translateY(-3px);
+            border-color: var(--signal-green);
+        }
+
+        .enter-button:hover::before {
+            left: 100%;
+        }
+
+        .enter-button:active {
+            transform: translateY(-1px);
+            box-shadow: 0 0 60px rgba(6, 214, 160, 1);
+        }
+
+        /* Glitch Effect */
+        .glitch {
+            position: relative;
+            display: inline-block;
+        }
+
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .glitch::before {
+            animation: glitch-1 0.5s infinite;
+            color: var(--blood-red);
+            z-index: -1;
+        }
+
+        .glitch::after {
+            animation: glitch-2 0.5s infinite;
+            color: var(--neon-violet);
+            z-index: -2;
+        }
+
+        @keyframes glitch-1 {
+            0%, 14%, 15%, 49%, 50%, 99%, 100% { transform: translate(0); }
+            15%, 49% { transform: translate(-2px, 2px); }
+        }
+
+        @keyframes glitch-2 {
+            0%, 20%, 21%, 62%, 63%, 99%, 100% { transform: translate(0); }
+            21%, 62% { transform: translate(2px, -2px); }
+        }
+
+        /* Footer */
+        .footer-text {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--static-gray);
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            opacity: 0.6;
+        }
+
+        .stay-sharp {
+            color: var(--blood-red);
+            font-weight: 700;
+            animation: pulse 2s infinite;
+            text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .ascii-logo {
+                margin-bottom: 2rem;
+            }
+            
+            .terminal-ring {
+                font-size: clamp(0.25rem, 0.5vw, 0.4rem);
+                line-height: 1.0;
+            }
+            
+            .project-title {
+                margin-bottom: 0.5rem;
+            }
+            
+            .project-subtitle {
+                margin-bottom: 2rem;
+            }
+            
+            .enter-button {
+                padding: 1.2rem 2rem;
+                min-width: 180px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .landing-container {
+                max-width: 95vw;
+            }
+            
+            .terminal-ring {
+                font-size: clamp(0.2rem, 0.4vw, 0.35rem);
+                line-height: 0.95;
+            }
+            
+            .enter-button {
+                padding: 1rem 1.5rem;
+                min-width: 160px;
+                font-size: 1rem;
+            }
+            
+            .footer-text {
+                bottom: 1rem;
+                font-size: 0.7rem;
+            }
+        }
+
+        /* Noise Overlay */
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.02;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><defs><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter></defs><rect width="100%" height="100%" filter="url(%23noise)"/></svg>');
+            pointer-events: none;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-ruins"></div>
+    <div class="noise-overlay"></div>
+
+    <div class="landing-container">
+        <!-- ASCII Logo -->
+        <div class="ascii-logo">
+            <pre class="terminal-ring">                                                                                                                                                    
+                                                                                          ./*******************(*.       ..,,***,,,,,,..,...                                                            
+                                                                                 ***************************************                                                                                
+                                                                           ********************************************/*/*****,                                                                        
+                                                                       ***************/.                              ,*/*/////////,/.                                                                  
+                                                                   *************                                          .**//////////*,,,,,,,,,,,,,..                                                 
+                                                               .***********                                                  *//                                                                        
+                                                             **********                                                                                                                                 
+                                                          *********                                                                                                                                     
+                                                       .********                                                                  .*/////////((/*                                                       
+                                                     ,*******,                                                                           .                                                              
+                                                   /*******                                                                                        .((                                                  
+                                                  *******                                                                                        (((((((                                                
+                                                *******                                                           .*                  *            (((((((                                              
+                                              .******                                                           */////*            ./((((           *((((((                                             
+                                             /******                                                         ////////            /(((((((.            ((((((*                                           
+                                            ******.                                                        ////////           ./((((((/                (((((((                                          
+                                           ******                                                       *///////            ((((((((                    /((((((                                         
+                                          ******                                                     **//////,           /(((((((/                       *(((((/                                        
+                                         ******,                                                   ////////            /(((((((,                           ((((((.                                       
+                                         *****/                                                 *///////            /(((((((                              ((((((                                       
+                                        ******                                               ////////,            ((((((((                                  ((((((                                      
+                                        ******                                             ///////*            ((((((((           .((                       ((((((                                      
+                                       ,*****                                           *///////             ((((((((           (((((((/                    .(((((                                      
+                                       ******                                        ////////*            ((((((((           ,((((((((                       ((((((                                     
+                                       ******                                     .///////*            .(((((((/           ((((((((*                         ((((((                                     
+                                       ******                                   *///////             /(((((((           .((((((((                            ((((((                                     
+                                       ******                                ////////(            ,(((((((*           ((((((((*                              ((((((                                     
+                                       ******                             .///////*             ((((((((            ((((((((                                 (((((.                                     
+                                       ,*****                           *///////,            /(((((((.           (((((((((                                  ,(((((                                      
+                                        ******                       /////////             ((((((((            ((((((((                                     ((((((                                      
+                                        ******                     ////////             ((((((((            (((((((((                                      .(((((.                                      
+                                         ******                 ////////.             ((((((((            ((((((((.                                        ((((((                                       
+                                         ******              *////////             /(((((((            /((((((((                                          ((((((                                        
+                                          ******           ////////              (((((((/            ((((((((,                                           /(((((,                                        
+                                           /*****       *///////.             /(((((((            /((((((((                                             *(((((/                                         
+                                            ******   .*///////              ((((((((            (((((((((                                              /(((((/                                          
+                                             **/***///////*              ((((((((            /(((((((#                                                ((((((*                                           
+                                              //////////.             .((((((((            (((((((((                                                .((((((                                             
+                                                //////              /(((((((            ,((((((((.                                                 (((((((                                              
+                                                 */              .((((((((            (((((((((                                                  (((((((                                                
+                                                               /(((((((             ((((((((*                                                  (((((((*                                                 
+                                                             (((((((#            (((((((((                                                   (((((((/                                                   
+                                                          /(((((((             (((((((((                                                  /(((((((.                                                     
+                                                        *///(((/            *((((((((                                                  (((((((((                                                        
+                                                     ,.,,,**/             (((((((((                                                 (((((((((                                                           
+                                                    ......,            .((((((((*                                               ((((((((((                                                              
+                                                        .            (((((((((*                                           ,((((((((((((                                                                 
+                                                                       ((((((((((((((/                             *((((((((((((((/                                                                     
+                                                                           *(((((((((((((((((((((((((((((((((((((((((((((((((/                                                                          
+                                                                                  (((((((((((((((((((((((((((((((((((((.                                                                                
+                                                                                            .#(((((((((((((#.                                                                                           
+            </pre>
+        </div>
+
+        <!-- Title -->
+        <div class="project-title glitch" data-text="PROJECT NEON">PROJECT NEON</div>
+        <div class="project-subtitle">TERMINAL ACCESS REQUIRED</div>
+
+        <!-- Enter Button -->
+        <a href="resistance_signal.html" class="enter-button">[> ENTER THE GRID]</a>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-text">
+        <span class="stay-sharp">STAY SHARP. STAY SOVEREIGN.</span>
+    </div>
+
+    <script>
+        // Interactive effects
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add glitch effect to title on hover
+            const title = document.querySelector('.project-title');
+            title.addEventListener('mouseenter', function() {
+                this.style.animation = 'glitch-1 0.3s ease-out';
+                setTimeout(() => {
+                    this.style.animation = 'title-flicker 3s infinite';
+                }, 300);
+            });
+
+            // Enter button effects
+            const enterButton = document.querySelector('.enter-button');
+            enterButton.addEventListener('click', function(e) {
+                // Add flash effect
+                this.style.background = 'var(--signal-green)';
+                this.style.color = 'var(--deep-black)';
+                this.style.boxShadow = '0 0 60px rgba(16, 185, 129, 1)';
+                
+                setTimeout(() => {
+                    // Navigate after effect
+                    window.location.href = this.href;
+                }, 200);
+                
+                e.preventDefault();
+            });
+
+            // Random logo flicker
+            const logo = document.querySelector('.terminal-ring');
+            setInterval(() => {
+                if (Math.random() < 0.05) {
+                    logo.style.opacity = '0.3';
+                    setTimeout(() => {
+                        logo.style.opacity = '1';
+                    }, 100);
+                }
+            }, 3000);
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Enter key to proceed
+                if (e.keyCode === 13) {
+                    enterButton.click();
+                }
+                // ESC key for "emergency exit"
+                if (e.keyCode === 27) {
+                    document.body.style.opacity = '0.1';
+                    setTimeout(() => {
+                        document.body.style.opacity = '1';
+                    }, 500);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
