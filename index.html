@@ -36,6 +36,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            position: relative;
         }
 
         /* CRT Scanlines */
@@ -90,53 +91,50 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            max-width: 90vw;
-            max-height: 90vh;
+            width: 100%;
+            height: 100vh;
             position: relative;
             z-index: 10;
+            padding: 1rem;
         }
 
         /* ASCII Logo */
         .ascii-logo {
-            margin-bottom: 3rem;
-            overflow: hidden;
+            margin-bottom: 6.5rem;
             display: flex;
             justify-content: center;
             align-items: center;
+            width: 100%;
+            max-height: 40vh;
         }
 
-        .terminal-ring {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: clamp(0.3rem, 0.6vw, 0.5rem);
-            line-height: 1.2;
-            color: var(--glitch-teal);
-            text-shadow: 0 0 10px rgba(6, 214, 160, 0.5);
+        .logo-image {
+            max-width: 100%;
+            max-height: 75vh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            filter: 
+                drop-shadow(0 0 20px rgba(6, 214, 160, 0.6))
+                brightness(1.1)
+                contrast(1.2);
             animation: logo-pulse 4s ease-in-out infinite alternate;
-            margin: 0;
-            white-space: pre;
-            transform-origin: center;
-            letter-spacing: 0px;
-            font-weight: 400;
-            /* Force proper character proportions */
-            font-variant-numeric: tabular-nums;
-            font-feature-settings: "tnum";
-            /* Prevent browser font scaling */
-            text-size-adjust: none;
-            -webkit-text-size-adjust: none;
-            -moz-text-size-adjust: none;
-            /* Preserve aspect ratio */
-            width: fit-content;
-            height: fit-content;
         }
 
         @keyframes logo-pulse {
             0% { 
-                opacity: 0.6;
-                text-shadow: 0 0 5px rgba(6, 214, 160, 0.3);
+                opacity: 0.8;
+                filter: 
+                    drop-shadow(0 0 10px rgba(6, 214, 160, 0.4))
+                    brightness(1.0)
+                    contrast(1.1);
             }
             100% { 
                 opacity: 1;
-                text-shadow: 0 0 20px rgba(6, 214, 160, 0.8);
+                filter: 
+                    drop-shadow(0 0 30px rgba(6, 214, 160, 0.8))
+                    brightness(1.2)
+                    contrast(1.3);
             }
         }
 
@@ -144,7 +142,7 @@
         .project-title {
             font-family: 'Orbitron', monospace;
             font-weight: 900;
-            font-size: clamp(1.5rem, 4vw, 3rem);
+            font-size: clamp(1.5rem, 6vw, 3rem);
             color: var(--neon-violet);
             letter-spacing: 3px;
             margin-bottom: 1rem;
@@ -158,9 +156,9 @@
         }
 
         .project-subtitle {
-            font-size: clamp(0.9rem, 2vw, 1.2rem);
+            font-size: clamp(0.8rem, 2.5vw, 1.2rem);
             color: var(--static-gray);
-            margin-bottom: 3rem;
+            margin-bottom: 1.25rem;
             letter-spacing: 2px;
             opacity: 0.8;
         }
@@ -170,10 +168,10 @@
             background: transparent;
             border: 3px solid var(--glitch-teal);
             color: var(--glitch-teal);
-            padding: 1.5rem 3rem;
+            padding: clamp(1rem, 2.5vw, 1.5rem) clamp(1.5rem, 4vw, 3rem);
             font-family: 'JetBrains Mono', monospace;
             font-weight: 700;
-            font-size: clamp(1rem, 2.5vw, 1.3rem);
+            font-size: clamp(0.9rem, 2.5vw, 1.3rem);
             text-transform: uppercase;
             letter-spacing: 2px;
             cursor: pointer;
@@ -183,7 +181,7 @@
             text-decoration: none;
             display: inline-block;
             text-align: center;
-            min-width: 200px;
+            min-width: clamp(200px, 30vw, 300px);
             box-shadow: 0 0 20px rgba(6, 214, 160, 0.3);
         }
 
@@ -258,18 +256,21 @@
         /* Footer */
         .footer-text {
             position: absolute;
-            bottom: 2rem;
+            bottom: 1.75rem;
             left: 50%;
             transform: translateX(-50%);
             color: var(--static-gray);
-            font-size: 0.8rem;
+            font-size: clamp(0.7rem, 1.5vw, 0.8rem);
             letter-spacing: 1px;
             opacity: 0.6;
+            text-align: center;
+            white-space: nowrap;
         }
 
         .stay-sharp {
             color: var(--blood-red);
             font-weight: 700;
+            font-size: clamp(0.8rem, 1.8vw, 1rem);
             animation: pulse 2s infinite;
             text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
         }
@@ -277,53 +278,6 @@
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .ascii-logo {
-                margin-bottom: 2rem;
-            }
-            
-            .terminal-ring {
-                font-size: clamp(0.25rem, 0.5vw, 0.4rem);
-                line-height: 1.0;
-            }
-            
-            .project-title {
-                margin-bottom: 0.5rem;
-            }
-            
-            .project-subtitle {
-                margin-bottom: 2rem;
-            }
-            
-            .enter-button {
-                padding: 1.2rem 2rem;
-                min-width: 180px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .landing-container {
-                max-width: 95vw;
-            }
-            
-            .terminal-ring {
-                font-size: clamp(0.2rem, 0.4vw, 0.35rem);
-                line-height: 0.95;
-            }
-            
-            .enter-button {
-                padding: 1rem 1.5rem;
-                min-width: 160px;
-                font-size: 1rem;
-            }
-            
-            .footer-text {
-                bottom: 1rem;
-                font-size: 0.7rem;
-            }
         }
 
         /* Noise Overlay */
@@ -338,6 +292,127 @@
             pointer-events: none;
             z-index: 1;
         }
+
+        /* Enhanced Responsive Design */
+        @media (max-width: 768px) {
+            .landing-container {
+                padding: 0.5rem;
+            }
+            
+            .ascii-logo {
+                margin-bottom: 1.5rem;
+                max-height: 30vh;
+            }
+            
+            .logo-image {
+                max-width: 95%;
+                max-height: 25vh;
+            }
+            
+            .project-title {
+                margin-bottom: 0.8rem;
+                letter-spacing: 2px;
+            }
+            
+            .project-subtitle {
+                margin-bottom: 5.0rem;
+                letter-spacing: 1px;
+            }
+            
+            .enter-button {
+                letter-spacing: 1px;
+                min-width: clamp(180px, 50vw, 250px);
+            }
+            
+            .footer-text {
+                bottom: 1rem;
+                padding: 0 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .landing-container {
+                padding: 0.25rem;
+                justify-content: flex-start;
+                padding-top: 2rem;
+            }
+            
+            .ascii-logo {
+                margin-bottom: 1rem;
+                max-height: 20vh;
+            }
+            
+            .logo-image {
+                max-width: 100%;
+                max-height: 18vh;
+            }
+            
+            .project-title {
+                margin-bottom: 0.5rem;
+                letter-spacing: 1px;
+            }
+            
+            .project-subtitle {
+                margin-bottom: 1rem;
+                letter-spacing: 1px;
+            }
+            
+            .enter-button {
+                letter-spacing: 1px;
+                min-width: clamp(160px, 70vw, 200px);
+                white-space: nowrap;
+            }
+            
+            .footer-text {
+                bottom: 0.5rem;
+                font-size: clamp(0.6rem, 2vw, 0.7rem);
+                padding: 0 0.5rem;
+            }
+            
+            .stay-sharp {
+                font-size: clamp(0.7rem, 2.2vw, 0.8rem);
+            }
+        }
+
+        @media (max-width: 320px) {
+            .logo-image {
+                max-height: 15vh;
+            }
+            
+            .enter-button {
+                min-width: 140px;
+                padding: 0.8rem 1rem;
+            }
+        }
+
+        /* Landscape orientation fixes */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .landing-container {
+                padding-top: 0.5rem;
+                justify-content: center;
+            }
+            
+            .ascii-logo {
+                margin-bottom: 0.5rem;
+                max-height: 15vh;
+            }
+            
+            .logo-image {
+                max-height: 13vh;
+            }
+            
+            .project-title {
+                margin-bottom: 0.3rem;
+            }
+            
+            .project-subtitle {
+                margin-bottom: 0.5rem;
+            }
+            
+            .footer-text {
+                bottom: 0.3rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -347,59 +422,7 @@
     <div class="landing-container">
         <!-- ASCII Logo -->
         <div class="ascii-logo">
-            <pre class="terminal-ring">                                                                                                                                                    
-                                                                                          ./*******************(*.       ..,,***,,,,,,..,...                                                            
-                                                                                 ***************************************                                                                                
-                                                                           ********************************************/*/*****,                                                                        
-                                                                       ***************/.                              ,*/*/////////,/.                                                                  
-                                                                   *************                                          .**//////////*,,,,,,,,,,,,,..                                                 
-                                                               .***********                                                  *//                                                                        
-                                                             **********                                                                                                                                 
-                                                          *********                                                                                                                                     
-                                                       .********                                                                  .*/////////((/*                                                       
-                                                     ,*******,                                                                           .                                                              
-                                                   /*******                                                                                        .((                                                  
-                                                  *******                                                                                        (((((((                                                
-                                                *******                                                           .*                  *            (((((((                                              
-                                              .******                                                           */////*            ./((((           *((((((                                             
-                                             /******                                                         ////////            /(((((((.            ((((((*                                           
-                                            ******.                                                        ////////           ./((((((/                (((((((                                          
-                                           ******                                                       *///////            ((((((((                    /((((((                                         
-                                          ******                                                     **//////,           /(((((((/                       *(((((/                                        
-                                         ******,                                                   ////////            /(((((((,                           ((((((.                                       
-                                         *****/                                                 *///////            /(((((((                              ((((((                                       
-                                        ******                                               ////////,            ((((((((                                  ((((((                                      
-                                        ******                                             ///////*            ((((((((           .((                       ((((((                                      
-                                       ,*****                                           *///////             ((((((((           (((((((/                    .(((((                                      
-                                       ******                                        ////////*            ((((((((           ,((((((((                       ((((((                                     
-                                       ******                                     .///////*            .(((((((/           ((((((((*                         ((((((                                     
-                                       ******                                   *///////             /(((((((           .((((((((                            ((((((                                     
-                                       ******                                ////////(            ,(((((((*           ((((((((*                              ((((((                                     
-                                       ******                             .///////*             ((((((((            ((((((((                                 (((((.                                     
-                                       ,*****                           *///////,            /(((((((.           (((((((((                                  ,(((((                                      
-                                        ******                       /////////             ((((((((            ((((((((                                     ((((((                                      
-                                        ******                     ////////             ((((((((            (((((((((                                      .(((((.                                      
-                                         ******                 ////////.             ((((((((            ((((((((.                                        ((((((                                       
-                                         ******              *////////             /(((((((            /((((((((                                          ((((((                                        
-                                          ******           ////////              (((((((/            ((((((((,                                           /(((((,                                        
-                                           /*****       *///////.             /(((((((            /((((((((                                             *(((((/                                         
-                                            ******   .*///////              ((((((((            (((((((((                                              /(((((/                                          
-                                             **/***///////*              ((((((((            /(((((((#                                                ((((((*                                           
-                                              //////////.             .((((((((            (((((((((                                                .((((((                                             
-                                                //////              /(((((((            ,((((((((.                                                 (((((((                                              
-                                                 */              .((((((((            (((((((((                                                  (((((((                                                
-                                                               /(((((((             ((((((((*                                                  (((((((*                                                 
-                                                             (((((((#            (((((((((                                                   (((((((/                                                   
-                                                          /(((((((             (((((((((                                                  /(((((((.                                                     
-                                                        *///(((/            *((((((((                                                  (((((((((                                                        
-                                                     ,.,,,**/             (((((((((                                                 (((((((((                                                           
-                                                    ......,            .((((((((*                                               ((((((((((                                                              
-                                                        .            (((((((((*                                           ,((((((((((((                                                                 
-                                                                       ((((((((((((((/                             *((((((((((((((/                                                                     
-                                                                           *(((((((((((((((((((((((((((((((((((((((((((((((((/                                                                          
-                                                                                  (((((((((((((((((((((((((((((((((((((.                                                                                
-                                                                                            .#(((((((((((((#.                                                                                           
-            </pre>
+            <img src="neon-logo.png" alt="Project NEON ASCII Logo" class="logo-image">
         </div>
 
         <!-- Title -->
@@ -412,63 +435,8 @@
 
     <!-- Footer -->
     <div class="footer-text">
-        <span class="stay-sharp">STAY SHARP. STAY SOVEREIGN.</span>
+        <span class="stay-sharp">STAY SHARP. STAY SOVEREIGN.</span><br>
+        THE SIGNAL IS LIVE.
     </div>
-
-    <script>
-        // Interactive effects
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add glitch effect to title on hover
-            const title = document.querySelector('.project-title');
-            title.addEventListener('mouseenter', function() {
-                this.style.animation = 'glitch-1 0.3s ease-out';
-                setTimeout(() => {
-                    this.style.animation = 'title-flicker 3s infinite';
-                }, 300);
-            });
-
-            // Enter button effects
-            const enterButton = document.querySelector('.enter-button');
-            enterButton.addEventListener('click', function(e) {
-                // Add flash effect
-                this.style.background = 'var(--signal-green)';
-                this.style.color = 'var(--deep-black)';
-                this.style.boxShadow = '0 0 60px rgba(16, 185, 129, 1)';
-                
-                setTimeout(() => {
-                    // Navigate after effect
-                    window.location.href = this.href;
-                }, 200);
-                
-                e.preventDefault();
-            });
-
-            // Random logo flicker
-            const logo = document.querySelector('.terminal-ring');
-            setInterval(() => {
-                if (Math.random() < 0.05) {
-                    logo.style.opacity = '0.3';
-                    setTimeout(() => {
-                        logo.style.opacity = '1';
-                    }, 100);
-                }
-            }, 3000);
-
-            // Keyboard shortcuts
-            document.addEventListener('keydown', function(e) {
-                // Enter key to proceed
-                if (e.keyCode === 13) {
-                    enterButton.click();
-                }
-                // ESC key for "emergency exit"
-                if (e.keyCode === 27) {
-                    document.body.style.opacity = '0.1';
-                    setTimeout(() => {
-                        document.body.style.opacity = '1';
-                    }, 500);
-                }
-            });
-        });
-    </script>
 </body>
 </html>
